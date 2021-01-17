@@ -1,11 +1,15 @@
 ---
-title: "Week 2 - 2021"
+title: "Week 2 - Transit Cost Project"
 author: "Andres Camilo Zuñiga Gonzalez"
-date: "`r format(Sys.time(), '%d %m, %y')`"
-output: html_document
+date: "`r format(Sys.time(), '%d/%m/%y')`"
+output: github_document
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file='README.md') })
 ---
 
-```{r packages}
+```{r packages, warning = FALSE, message=FALSE}
 library(tidytuesdayR)
 library(tidyverse)
 library(countrycode)
@@ -13,7 +17,7 @@ library(ggbump)
 library(ggflags)
 ```
 
-```{r data}
+```{r data, warning = FALSE, message=FALSE, results='hide'}
 df <- tt_load('2021-01-05')$transit_cost[1:537,]
 
 df$start_year <- as.numeric(df$start_year)
@@ -22,7 +26,7 @@ df$real_cost <- as.numeric(df$real_cost)
 df$country <- countrycode(df$country, origin = 'iso2c', destination = 'genc2c')
 ```
 
-```{r by_country}
+```{r by_country, warning = FALSE, message=FALSE}
 df_country <- df %>%
     group_by(country) %>%
     summarise(total_cost = sum(real_cost), total_length = sum(length)) %>%
@@ -30,7 +34,7 @@ df_country <- df %>%
     slice_max(total_length, n = 20)
 ```
 
-```{r rank}
+```{r rank, warning = FALSE, message=FALSE}
 df_rank <- df_country %>%
     mutate(total_length_rank = 1:20) %>%
     arrange(desc(total_cost)) %>%
@@ -43,7 +47,7 @@ df_rank <- df_country %>%
     mutate(continent = countrycode(country, origin = 'genc2c', destination = 'continent'))
 ```
 
-```{r plot}
+```{r plot, warning = FALSE, message=FALSE, fig.show='hide'}
 ggplot(df_rank, aes(x = metric, y = rank, country = tolower(country), color = continent)) + 
     geom_bump(smooth = 10, size = 1.5, lineend = "round") +
     geom_flag(size = 10) + 
@@ -76,6 +80,7 @@ ggplot(df_rank, aes(x = metric, y = rank, country = tolower(country), color = co
         legend.key.size = unit(2, "cm")
     )
 
-ggsave('transit_project.png', device = 'png', width = 50, height = 30, units = 'cm', dpi = 300)
+ggsave('transit_cost_project.png', device = 'png', width = 50, height = 30, units = 'cm', dpi = 300)
 ```
 
+![Transit Cost Project](transit_cost_project.png)
