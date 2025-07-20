@@ -1,0 +1,63 @@
+# Independence Days in the Americas
+Andres Camilo Zuñiga Gonzalez
+2026-08-07
+
+``` r
+# Read the independence dates data
+independence_data <- read.csv("independence_dates.csv") |>
+    mutate(Independence_Date = ymd(Independence.Date), 
+           month = month(Independence_Date, label = TRUE),
+           year = as.numeric(year(Independence_Date)),
+           doy = yday(Independence_Date),
+           iso2c = tolower(countrycode(ISO.Code, origin = "iso3c", destination = "iso2c")))
+
+day_month_df <- tibble(date = seq(ymd("2000-01-01"), ymd("2000-12-01"), by = "month")) |>
+    mutate(doy = yday(date), month = month(date, label = TRUE))
+```
+
+``` r
+americas_map <- World |> 
+    filter(continent %in% c('South America', 'North America')) |> 
+    st_union() |>
+    ggplot() + 
+    geom_sf(alpha = 0.2, colour = 'lightgray') + 
+    theme_void()
+
+grid_colours <- RColorBrewer::brewer.pal(name = 'BuPu', n = 9)
+
+independence_plot <- independence_data |>
+    # filter(Independence_Date < ymd("1904-01-01")) |>
+    ggplot(aes(x = doy, country = iso2c, y = year), size = 1) +
+        geom_text_repel(aes(label = stringr::str_wrap(Country, width = 12)), box.padding = 1, 
+                        max.overlaps = Inf, size = 4, segment.linetype = 'dotted', segment.curvature = 0.5, segment.angle = 45, segment.ncp = 1) +
+        geom_flag(size = 7) +
+        scale_country() +
+        coord_curvedpolar() +
+        scale_x_continuous(breaks = day_month_df$doy, labels = day_month_df$month, limits = c(1, 365)) +
+        scale_y_continuous(limits = c(1700, 1985), breaks = c(1775, seq(1800, 1975, by = 25))) +
+        labs(x = NULL, y = NULL, title = "Independence Calendar in the Americas",
+             subtitle = '1775 - 1985',
+        caption = 'by Andrés C. Zúñiga-González (@ancazugo) \n Data: Wikipedia') +
+        theme(legend.position = "none", 
+              plot.title = element_text(size = 20, hjust = 0.5),
+              plot.title.position = "panel",
+              plot.subtitle = element_text(size = 16, hjust = 0.5),
+              plot.subtitle.position = "panel",
+              axis.line.x = element_blank(),
+              axis.text.x = element_text(size = 12, hjust = 1, vjust = -.5, face = 'bold'),
+              axis.text.y = element_text(size = 12, face = 'bold', colour = grid_colours),
+              panel.grid.minor = element_blank(), 
+              panel.grid.major.x = element_line(colour = 'lightgray'),
+              panel.grid.major.y = element_line(colour = grid_colours),
+              plot.background = element_rect(fill = 'transparent'),
+              panel.background = element_rect(fill = 'transparent'))
+   
+(final_plot <- ggdraw() +
+    draw_plot(independence_plot) +
+    draw_plot(americas_map, scale = 0.8) +
+    theme(plot.background = element_rect(fill = 'white')))
+
+ggsave('independence_day_plot.png', final_plot, width = 10, height = 10)
+```
+
+![Independence Day Plot](independence_day_plot.png)
