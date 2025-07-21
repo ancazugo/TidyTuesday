@@ -1,10 +1,25 @@
 # Independence Days in the Americas
 Andres Camilo Zuñiga Gonzalez
-2026-08-07
+2026-09-07
 
 ``` r
-# Read the independence dates data
-independence_data <- read.csv("independence_dates.csv") |>
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(cowplot)
+library(countrycode)
+library(sf)
+library(tmap)
+library(ggrepel)
+library(ggflags)
+library(geomtextpath)
+library(here)
+data(World)
+```
+
+``` r
+folder <- ""
+independence_data <- read.csv(here(folder, "independence_dates.csv")) |>
     mutate(Independence_Date = ymd(Independence.Date), 
            month = month(Independence_Date, label = TRUE),
            year = as.numeric(year(Independence_Date)),
@@ -29,7 +44,7 @@ independence_plot <- independence_data |>
     # filter(Independence_Date < ymd("1904-01-01")) |>
     ggplot(aes(x = doy, country = iso2c, y = year), size = 1) +
         geom_text_repel(aes(label = stringr::str_wrap(Country, width = 12)), box.padding = 1, 
-                        max.overlaps = Inf, size = 4, segment.linetype = 'dotted', segment.curvature = 0.5, segment.angle = 45, segment.ncp = 1) +
+                        max.overlaps = Inf, size = 4, segment.linetype = 'dotted', segment.curvature = 0.5, segment.angle = 45, segment.ncp = 1, colour = 'lightgray') +
         geom_flag(size = 7) +
         scale_country() +
         coord_curvedpolar() +
@@ -37,15 +52,16 @@ independence_plot <- independence_data |>
         scale_y_continuous(limits = c(1700, 1985), breaks = c(1775, seq(1800, 1975, by = 25))) +
         labs(x = NULL, y = NULL, title = "Independence Calendar in the Americas",
              subtitle = '1775 - 1985',
-        caption = 'by Andrés C. Zúñiga-González (@ancazugo) \n Data: Wikipedia') +
+        caption = 'by Andrés C. Zúñiga-González (@ancazugo)\nData: Wikipedia') +
         theme(legend.position = "none", 
-              plot.title = element_text(size = 20, hjust = 0.5),
+              plot.title = element_text(size = 25, hjust = 0.5, face = 'bold', colour = 'white'),
               plot.title.position = "panel",
-              plot.subtitle = element_text(size = 16, hjust = 0.5),
+              plot.subtitle = element_text(size = 16, hjust = 0.5, colour = 'white'),
+              plot.caption = element_text(size = 10, hjust = 1, colour = 'white'),
               plot.subtitle.position = "panel",
-              axis.line.x = element_blank(),
-              axis.text.x = element_text(size = 12, hjust = 1, vjust = -.5, face = 'bold'),
+              axis.text.x = element_text(size = 12, hjust = 1, vjust = -.5, face = 'bold', colour = 'white'),
               axis.text.y = element_text(size = 12, face = 'bold', colour = grid_colours),
+              panel.border = element_blank(),
               panel.grid.minor = element_blank(), 
               panel.grid.major.x = element_line(colour = 'lightgray'),
               panel.grid.major.y = element_line(colour = grid_colours),
@@ -55,9 +71,9 @@ independence_plot <- independence_data |>
 (final_plot <- ggdraw() +
     draw_plot(independence_plot) +
     draw_plot(americas_map, scale = 0.8) +
-    theme(plot.background = element_rect(fill = 'white')))
+    theme(plot.background = element_rect(fill = '#2E2E2E')))
 
-ggsave('independence_day_plot.png', final_plot, width = 10, height = 10)
+ggsave(here(folder, "independence_day_plot_black.png"), final_plot, width = 10, height = 10)
 ```
 
-![Independence Day Plot](independence_day_plot.png)
+![Independence Day Plot](independence_day_plot_black.png)
